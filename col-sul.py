@@ -1,6 +1,11 @@
 import autopy
 import os
 import time
+import random
+import cv2
+import numpy as np
+
+from modules import Screenshot
 
 def setup():
     os.system("xdotool search --name Eternal windowmove 0 0 ")
@@ -9,7 +14,7 @@ def map_click(x,y,button=1):
     """Move Click"""
     time.sleep(1)
     os.system('xdotool search --name Eternal windowactivate key Tab')
-    time.sleep(.1)
+    time.sleep(.5)
     autopy.mouse.move(x,y)
     autopy.mouse.click(button)
     os.system('xdotool search --name Eternal windowactivate key Tab')
@@ -42,13 +47,14 @@ def run():
     #goes to sulphur
     map_click(392,41)
     mine()
-    time.sleep(500)
+    time.sleep(400)
     to_storage()
 
 def mine():
-    time.sleep(34)
+    time.sleep(28)
     print("Mining the biggest sulphur rock")
-    click(545,334)
+    detect_sul()
+
 def to_storage():
     map_click(727,130)
     time.sleep(34)
@@ -68,7 +74,57 @@ def to_storage():
     click(407,26, 1,'no wait')
     click(813,28,1, 'no wait')
 
+def detect_sul():
+    # Screenshot rectangle mid-center of the game screen not relevant to the game window
+    img = Screenshot.shoot(100,80,800,560, 'hsv')
+    # Lower and uppper colors of the sulphur rocks
+    low = np.array([0,35,51])
+    high= np.array([179,55,83])
 
+    mask = cv2.inRange(img, low, high)
+    
+    # Removes noise
+    kernel = np.ones((10,10), np.uint8)
+    # closing is the img w/ no nosie
+    closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    
+    blur = cv2.GaussianBlur(closing, (5,5),0)
+
+    contours, _ = cv2.findContours(blur, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    cnt = contours[0]
+    
+    # Finds min max coords of first contour
+    all_xs = []
+    all_ys = []
+    for a in cnt:
+        for b in a:
+            all_xs.append(b[0])
+            all_ys.append(b[1])
+    # getting the rectangle of contour
+    x1 = min(all_xs)
+    y1 = min(all_ys)
+
+    x2 = max(all_xs)
+    y2 = max(all_ys)
+
+    w = x2 - x1
+    h = y2 - y1
+
+    x1 += ((w/2)/2)
+    y1 += ((h/2)/2)
+    x2 -= ((w/2)/2)
+    y2 -= ((h/2)/2)
+
+    x = random.randint(x1,x2)
+    y = random.randint(y1,y2)
+
+    # adding the points of the image back the coords
+    x += 100
+    y += 80
+    click(x,y)
 
 setup()
 #run()
+#detect_sul()
+to_storage()
