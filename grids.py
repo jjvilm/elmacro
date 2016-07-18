@@ -1,14 +1,17 @@
 #!/usr/bin/python2
 import autopy
 import time
+from contMake import itmlst_window
 
 
 def move(x,y):
     """Moves the cursor to x,y and then clicks"""
     #os.system('xdotool mousemove {} {} sleep .1 click --delay 100 --repeat {} 1'.format(x,y, repeat))
+    time.sleep(.01)
     autopy.mouse.move(x,y)
-    time.sleep(.1)
+    time.sleep(.05)
     autopy.mouse.click(1)
+    time.sleep(.05)
 
 
 def wait(n=.3):
@@ -25,9 +28,9 @@ def category(name):
 def inbank():
     """Deposits held item into bank then right clicks"""
     move(85,95)
-    wait(.1)
+    wait(.2)
     autopy.mouse.click(3)
-    wait(.1)
+    wait(.2)
 def store_all():
     """Stores all items in inventory"""
     # store all
@@ -52,55 +55,61 @@ def storage(row,col,repeat):
 def itmlst(loc_x, loc_y,n_items):
     #opens itm list
     itmlst_toggle()
-    # moves to passed location
+    # moves to ingredients in itmlst location
     move(loc_x, loc_y)
-    wait(.5)
 
     x,y = 330,30
     w = 34
     l = 30
     for i in range(n_items):
+        # moves to item in itmlst, clicks 
+        # then moves to bank
         move(x,y)
         inbank()
         x += w
-        if i == 7:
+        if i == 5:
+            # moves curosor to next row
             y += l
-        if i == 13:
+            # resets X coord
+            x = 330
+        if i == 11:
+            # moves curosor to next row
             y += l
+            x = 330
     # Withdraws into bank item
     itmlst_toggle()
 
 def inventory(row,col,clicks):
     """pass row and colum of item to click by n clicks in inventory"""
-    # old 
-    #x,y = 20,27
-    # new revised coords
+    # clicks on the walk icon to be able to equipt items
+    move(15,530)
+    # ROWS AND COLS START AT 0
     x,y = 18,33
     w = 34
     l = 34
-    if row != 1:
-        row -= 1
-        y = y+(l*row)
-    if col != 1:
-        col -= 1
-        x = x+(w*col)
-
-    #click on the use button before clicking bones
-    move(110,528)
-    autopy.mouse.move(x,y)
-    time.sleep(.1)
-    for i in range(clicks):
-        autopy.mouse.click(1)
-        time.sleep(.01)
-    time.sleep(.1)
+    # row,col iterations
+    rite = 0 
+    cite = 0
+    while True:
+        if rite == row and cite == col:
+            for _ in range(clicks):
+                move(x,y)
+            break
+        else:
+            if cite == 5:
+                rite += 1
+                y += l
+                cite = 0
+                x = 18
+            else:
+                cite += 1
+                x += w
+        if rite > 5:
+            break
 
 def itmlst_toggle():
     """Checks to see if itmlst is open to take out bones"""
-    # opens/closes itm lst
-    move(295,200)
-    wait()
-
-
+    itmlst_window()
 
 if __name__ == "__main__":
     inventory(1,3,5)

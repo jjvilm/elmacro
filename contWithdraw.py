@@ -6,7 +6,6 @@ import grids
 import subprocess
 
 # gets initial mouse position to place it back when all functions are finished
-cx,cy = autopy.mouse.get_pos()
 # boolean to know when itm list window is opened
 itmlst_open = False
 
@@ -35,9 +34,11 @@ def move(x,y, repeat):
     """Moves the cursor to x,y and then clicks"""
     #os.system('xdotool mousemove {} {} sleep .1 click --delay 100 --repeat {} 1'.format(x,y, repeat))
     autopy.mouse.move(x,y)
-    time.sleep(.1)
+    time.sleep(1)
     for n in range(repeat):
         autopy.mouse.click(1)
+        time.sleep(.001)
+    time.sleep(1)
 
 def wait():
     """Change to a higher number to compensate for lagg"""
@@ -52,10 +53,11 @@ def category(name):
 
 def inbank(times):
     """Deposits held item into bank then right clicks"""
-    time.sleep(.2)
+    time.sleep(1)
     move(85,95,times)
+    time.sleep(1)
     autopy.mouse.click(3)
-    time.sleep(.2)
+    time.sleep(1)
 
 def store_all():
     """Stores all items in inventory"""
@@ -69,13 +71,10 @@ def get_bones(times):
         grids.itmlst(330,120,1)
 
 def mix_all():
-    autopy.mouse.click(3)
+    #autopy.mouse.click(3)
     ####time.sleep(.3)
     # clicks on the mix all button in inventory
     grids.inventory(5,9,1)
-
-    #moves back to original mouse position
-    autopy.mouse.move(cx,cy)
 
 def storage_grid(row,col,repeat):
     x,y = 486,43
@@ -104,77 +103,20 @@ def itmlst_grid(row,col):
         x = x+(w*col)
     move(x,y,1)
     # Withdraws into bank item
+    time.sleep(.07)
     inbank(1)
-
-def open_console():
-    # opens console 
-    autopy.key.tap(autopy.key.K_F1)
-    time.sleep(8)
-    # closes console 
-    autopy.key.tap(autopy.key.K_F1)
-    time.sleep(.1)
-
-def continuous_make(item_to_make, counter=10):
-    # will take out more bones when bones == 0
-    bones = 1
-    # counter will take out new ings when reaches 0
-    # when count reaches 0 break
-    count = 50
-
-    item_to_make()
-    #opens
-    open_console()
-    f = '/home/jj/.elc/main/srv_log.txt'
-    while True:
-        os.system('clear')
-        print('counter:',counter)
-        print('bones: {}'.format(bones))
-        # reads last line of console
-        last_line = subprocess.check_output(['tail', '-1', f])
-        if count == 0:
-            break
-        if counter == 0:
-            item_to_make()
-            open_console()
-            counter = 10
-
-        if bones == 0:
-            print('Getting Bones')
-            get_bones(2)
-            bones = 2
-        if 'hungry' in last_line:
-            print('Hungry, eating')
-            mix_all()
-            time.sleep(1)
-            open_console()
-            bones -= 1
-            print(bones)
-
-        elif 'You failed to'or 'You stopped working' in last_line:
-            print('Failed or stopped')
-            # click on mix all in man. window
-            time.sleep(1)
-            autopy.mouse.move(702,478)
-            time.sleep(.1)
-            autopy.mouse.click(1)
-
-            open_console()
-
-        # closes console if it's open
-        counter -= 1
-        count -=  1
 
 def mix_dict(item):
     """runs the withdraw process, and mix.  Lastly returns the position of the bones"""
     items = {
-        "ME":mix_Items(339, 196,5),
+        "ME":mix_Items(339, 234,5),
         "EE":mix_Items(330,142,4),
-        "silverBar":mix_Items(330,233,4),
-        "HE": mix_Items(330,180,3),
-        "ironBar": mix_Items(330,200, 4),
-        "steelBar": mix_Items(330,270,4),
+        "silverBar":mix_Items(330,269,4),
+        "HE": mix_Items(330,197,3),
+        "ironBar": mix_Items(330,214, 4),
+        "steelBar": mix_Items(330,286,4),
         "vial": mix_Items(330,307,4),
-        "PSR": mix_Items(330,234,6)
+        "PSR": mix_Items(330,250,6)
 
     }
     x_instance = items[item]
@@ -184,7 +126,6 @@ def mix_dict(item):
 
 ########################################
 if __name__ == "__main__":
-    product = mix_dict('PSR')
-    product.run()
+    mix_dict('PSR')
     cx,cy = autopy.mouse.get_pos()
 
