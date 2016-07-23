@@ -18,17 +18,20 @@ class mix_Items(object):
 
     def run(self):
         # stores all items before withdrawing any
-        store_all()
+        grids.store_all()
         # withdraws items 
         grids.itmlst(self.x,self.y,self.n)
         self.eat()
         # clics mix all button in inventory 
-        mix_all()
+        grids.mix_all()
 
     def eat(self):
         # n == last slot where bones reside
         # eats bones 5 times
-        grids.inventory(1,self.n,5)
+        # 0 == first row (0th row)
+        grids.action_btn(4)
+        time.sleep(.1)
+        grids.inventory(0,self.n-1,5)
 
 def move(x,y, repeat):
     """Moves the cursor to x,y and then clicks"""
@@ -70,49 +73,14 @@ def get_bones(times):
     for i in xrange(times):
         grids.itmlst(330,120,1)
 
-def mix_all():
-    #autopy.mouse.click(3)
-    ####time.sleep(.3)
-    # clicks on the mix all button in inventory
-    grids.inventory(5,9,1)
-
-def storage_grid(row,col,repeat):
-    x,y = 486,43
-    w = 34
-    l = 30
-    if row != 1:
-        row -= 1
-        y = y+(l*row)
-    if col != 1:
-        col -= 1
-        x = x+(w*col)
-    move(x,y,1)
-    # Withdraws into bank item
-    inbank(repeat)
-
-def itmlst_grid(row,col):
-    # opens list grid
-    x,y = 330,30
-    w = 34
-    l = 30
-    if row != 1:
-        row -= 1
-        y = y+(l*row)
-    if col != 1:
-        col -= 1
-        x = x+(w*col)
-    move(x,y,1)
-    # Withdraws into bank item
-    time.sleep(.07)
-    inbank(1)
-
 def mix_dict(item):
     """runs the withdraw process, and mix.  Lastly returns the position of the bones"""
     items = {
         "ME":mix_Items(339, 234,5),
-        "EE":mix_Items(330,142,4),
-        "silverBar":mix_Items(330,269,4),
         "HE": mix_Items(330,197,3),
+        "EE":mix_Items(330,142,4),
+        "FE":mix_Items(330,163,4),
+        "silverBar":mix_Items(330,269,4),
         "ironBar": mix_Items(330,214, 4),
         "steelBar": mix_Items(330,286,4),
         "vial": mix_Items(330,307,4),
@@ -123,9 +91,9 @@ def mix_dict(item):
 
     return x_instance
 
-
 ########################################
 if __name__ == "__main__":
-    mix_dict('PSR')
+    item = mix_dict('FE')
+    item.run()
     cx,cy = autopy.mouse.get_pos()
 

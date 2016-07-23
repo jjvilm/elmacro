@@ -5,13 +5,15 @@ import pyscreenshot
 import autopy
 import time
 import threading
-from contWithdraw import mix_all, mix_dict, get_bones
+from contWithdraw import  mix_dict, get_bones
+from grids import mix_all
 
 stop = None
 shoot_lock = threading.Lock()
+turn_lock = threading.Lock()
 cx,cy = 0, 0
 item_instance = mix_dict('silverBar')
-mix_iterations = 20
+mix_iterations = 999
 
 def shoot(x1,y1,x2,y2, *args, **kwargs):
     """Takes screenshot at given coordinates as PIL image format, the converts to cv2 grayscale image format and returns it"""
@@ -69,6 +71,7 @@ def calc_food():
                 stat_level += 1
         # if the food bar is less than 1%
         if stat_level < 1:
+            with turn_lock:
             iterations += 1
             # on 4th iteration it withdraws more bones
             if iterations == 4:
@@ -151,6 +154,7 @@ def nothing_to_mix():
             # withdraw more items 
             item_instance.run()
             iterations += 1
+            print("Iterations: {}".format(iterations))
             time.sleep(1)
         time.sleep(5)
 
@@ -217,6 +221,7 @@ def itmlst_window():
         itmlst_toggle()
 
 def safefail_mix():
+    """Clicks on mix all in case a rare item is made, or something else not detected"""
     global stop
 
     while True:
