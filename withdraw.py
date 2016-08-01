@@ -4,6 +4,7 @@ import autopy
 import time
 import grids
 import subprocess
+from contWithdraw import mix_dict
 
 # gets initial mouse position to place it back when all functions are finished
 cx,cy = autopy.mouse.get_pos()
@@ -164,27 +165,27 @@ def continuous_make(item_to_make, counter=10):
         counter -= 1
         count -=  1
 
-def mix_dict(item):
-    """runs the withdraw process, and mix.  Lastly returns the position of the bones"""
-    items = {
-        "ME":mix_Items(339, 196,5),
-        "EE":mix_Items(330,142,4),
-        "silverBar":mix_Items(330,233,4),
-        "HE": mix_Items(330,180,3),
-        "ironBar": mix_Items(330,200, 4),
-        "steelBar": mix_Items(330,270,4),
-        "vial": mix_Items(330,307,4),
-        "PSR": mix_Items(330,234,6)
-
-    }
-    x_instance = items[item]
-
-    return x_instance
+#def mix_dict(item):
+#    """runs the withdraw process, and mix.  Lastly returns the position of the bones"""
+#    items = {
+#        "ME":mix_Items(339, 196,5),
+#        "EE":mix_Items(330,142,4),
+#        "silverBar":mix_Items(330,233,4),
+#        "HE": mix_Items(330,180,3),
+#        "ironBar": mix_Items(330,200, 4),
+#        "steelBar": mix_Items(330,270,4),
+#        "vial": mix_Items(330,307,4),
+#        "PSR": mix_Items(330,234,6)
+#
+#    }
+#    x_instance = items[item]
+#
+#    return x_instance
 
 
 ########################################
 if __name__ == "__main__":
-    product = mix_dict('PSR')
+    product = mix_dict('silverMedallion')
     product.run()
     cx,cy = autopy.mouse.get_pos()
 

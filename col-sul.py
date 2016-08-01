@@ -12,12 +12,14 @@ def setup():
 
 def map_click(x,y,button=1):
     """Move Click"""
-    time.sleep(1)
-    os.system('xdotool search --name Eternal windowactivate key Tab')
+    click(400,530)
     time.sleep(.5)
     autopy.mouse.move(x,y)
+    time.sleep(1)
     autopy.mouse.click(button)
-    os.system('xdotool search --name Eternal windowactivate key Tab')
+    time.sleep(1)
+    click(400,530)
+    time.sleep(.5)
 def click(x,y,button=1, wait='no'):
     if wait == 'no':
         autopy.mouse.move(x,y)
@@ -124,7 +126,21 @@ def detect_sul():
     y += 80
     click(x,y)
 
-setup()
+#setup()
 #run()
 #detect_sul()
-to_storage()
+#to_storage()
+# storage
+map_click(228,179)
+time.sleep(15)
+# open store
+click(240,530)
+time.sleep(1)
+# store
+click(290,60)
+time.sleep(2)
+# close store
+click(240,530)
+time.sleep(1)
+
+map_click(272,303)

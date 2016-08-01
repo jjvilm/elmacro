@@ -4,6 +4,7 @@ import autopy
 import time
 import grids
 import subprocess
+from InterfaceDetect import find_eat_bones
 
 # gets initial mouse position to place it back when all functions are finished
 # boolean to know when itm list window is opened
@@ -26,12 +27,18 @@ class mix_Items(object):
         grids.mix_all()
 
     def eat(self):
-        # n == last slot where bones reside
-        # eats bones 5 times
-        # 0 == first row (0th row)
-        grids.action_btn(4)
-        time.sleep(.1)
-        grids.inventory(0,self.n-1,5)
+        """ n == last slot where bones reside
+         eats bones 5 times
+         0 == first row (0th row)"""
+#        # clicks on the use button first
+#        grids.action_btn(4)
+#        time.sleep(.1)
+#        # cliks the bones 5 times
+#        grids.inventory(0,self.n-1,5)
+        find_eat_bones()
+
+    def get_bones(self):
+        grids.item_itmlst(0,self.n-1)
 
 def move(x,y, repeat):
     """Moves the cursor to x,y and then clicks"""
@@ -68,11 +75,6 @@ def store_all():
     move(290,65,1)
     time.sleep(.5)
 
-def get_bones(times):
-    # withdraws 10 bones
-    for i in xrange(times):
-        grids.itmlst(330,120,1)
-
 def mix_dict(item):
     """runs the withdraw process, and mix.  Lastly returns the position of the bones"""
     items = {
@@ -80,11 +82,14 @@ def mix_dict(item):
         "HE": mix_Items(330,197,3),
         "EE":mix_Items(330,142,4),
         "FE":mix_Items(330,163,4),
-        "silverBar":mix_Items(330,269,4),
+        "WE":mix_Items(330,305,5),
+        "silverBar":mix_Items(330,287,4),
         "ironBar": mix_Items(330,214, 4),
         "steelBar": mix_Items(330,286,4),
         "vial": mix_Items(330,307,4),
-        "PSR": mix_Items(330,250,6)
+        "PSR": mix_Items(330,250,6),
+        "silverMedallion":mix_Items(330,305,3),
+        "moonMedallion":mix_Items(330,272,4)
 
     }
     x_instance = items[item]
@@ -93,7 +98,7 @@ def mix_dict(item):
 
 ########################################
 if __name__ == "__main__":
-    item = mix_dict('FE')
-    item.run()
+    item = mix_dict('moonMedallion')
+    item.get_bones()
     cx,cy = autopy.mouse.get_pos()
 

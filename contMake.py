@@ -5,15 +5,19 @@ import pyscreenshot
 import autopy
 import time
 import threading
-from contWithdraw import  mix_dict, get_bones
+from contWithdraw import  mix_dict 
 from grids import mix_all
 
 stop = None
+# used to avoid taking screenshots at the same time with 2 different threads
 shoot_lock = threading.Lock()
+# used to avoid colliding with other mouse move actions
 turn_lock = threading.Lock()
 cx,cy = 0, 0
-item_instance = mix_dict('silverBar')
-mix_iterations = 999
+# here to type what to make
+instance = raw_input("Make what?:\n")
+item_instance = mix_dict(instance)
+mix_iterations = 50
 
 def shoot(x1,y1,x2,y2, *args, **kwargs):
     """Takes screenshot at given coordinates as PIL image format, the converts to cv2 grayscale image format and returns it"""
@@ -72,16 +76,16 @@ def calc_food():
         # if the food bar is less than 1%
         if stat_level < 1:
             with turn_lock:
-            iterations += 1
-            # on 4th iteration it withdraws more bones
-            if iterations == 4:
-                # closes itmlist windows if open
-                itmlst_window()
-                time.sleep(.1)
-                get_bones(1) 
-                iterations = 0
-            item_instance.eat()
-            mix_all()
+                iterations += 1
+                # on 4th iteration it withdraws more bones
+                if iterations == 4:
+                    # closes itmlist windows if open
+                    itmlst_window()
+                    time.sleep(.1)
+                    item_instance.get_bones() 
+                    iterations = 0
+                item_instance.eat()
+                mix_all()
 
         time.sleep(1)
 
@@ -112,8 +116,9 @@ def stopped_working():
         ret, thresh = cv2.threshold(gray_img, 50, 255,cv2.THRESH_BINARY)
         # numpy array of letter "N"
         if (letter == thresh).all():
-            mix_all()
-            time.sleep(1)
+            with turn_lock:
+                mix_all()
+                time.sleep(1)
         else:
             time.sleep(1)
 
@@ -148,14 +153,15 @@ def nothing_to_mix():
         _, gray_img = cv2.threshold(gray_img, 50,255,cv2.THRESH_BINARY)
         # numpy array of letter "N"
         if (letter == gray_img).all():
-            # if itmlist window is open, it will be closed first
-            itmlst_window()
-            time.sleep(.1)
-            # withdraw more items 
-            item_instance.run()
-            iterations += 1
-            print("Iterations: {}".format(iterations))
-            time.sleep(1)
+            with turn_lock:
+                # if itmlist window is open, it will be closed first
+                itmlst_window()
+                time.sleep(.1)
+                # withdraw more items 
+                item_instance.run()
+                iterations += 1
+                print("Iterations: {}".format(iterations))
+                time.sleep(1)
         time.sleep(5)
 
 def you_failed():
@@ -185,8 +191,9 @@ def you_failed():
 
         # if all elements in array equate to True
         if (letter_f == thresh).all():
-            mix_all()
-            time.sleep(1)
+            with turn_lock:
+                mix_all()
+                time.sleep(1)
         time.sleep(2)
 
 def itmlst_window():
@@ -224,15 +231,20 @@ def safefail_mix():
     """Clicks on mix all in case a rare item is made, or something else not detected"""
     global stop
 
+    counter = 0
     while True:
         if stop == 'y':
             return
         
-        time.sleep(30)
-        # clicks mix all every minute
+        # clicks mix all every 2 mins
         # in case a rare item is created or some other reason
         # to kickstart the other detector threads
-        mix_all()
+        if counter == 120:
+            with turn_lock:
+                counter = 0
+                mix_all()
+        counter += 1
+        time.sleep(1)
 
 def start_threads():
     # checks health every 3 secsonds

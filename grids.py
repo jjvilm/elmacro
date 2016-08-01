@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 import autopy
 import time
-from modules import InterfaceDetect
+import InterfaceDetect
 
 def inventory(row,col,clicks):
     """pass row and colum of item to click by n clicks in inventory
@@ -35,8 +35,6 @@ def inventory(row,col,clicks):
             print('No more rows to iterate')
             break
 
-    """Checks to see if itmlst is open to take out bones"""
-
 def itmlst(loc_x, loc_y,n_items):
     """Pass x,y of items in list to take out.  n_items is the number of item in that list to take out
     last one being bones"""
@@ -67,6 +65,45 @@ def itmlst(loc_x, loc_y,n_items):
             x = 330
     # closes item lst window
     inventory(5,8,1)
+
+def item_itmlst(row, col):
+    """Takes out a single item at a time.  pass row and colum of item to click by n clicks in itmlst
+    Rows and Colums start at 0
+    """
+    # opens itm list if not already open
+    InterfaceDetect.open_itmlst_window()
+    time.sleep(0.1)
+
+    # ROWS AND COLS START AT 0
+    x,y = 330,30
+    w = 34
+    l = 34
+    # row,col iterations
+    rite = 0 
+    cite = 0
+    while True:
+        # At target row and col
+        if rite == row and cite == col:
+            # right clicks item before taking out. solve bug
+            autopy.mouse.click(3)
+            time.sleep(.1)
+            move(x,y)
+            inbank()
+            break
+        else:
+            # resets cols, and moves to next row
+            if cite == 5:
+                rite += 1
+                y += l
+                cite = 0
+                x = 330
+            # moves to next colum
+            else:
+                cite += 1
+                x += w
+        if rite > 2:
+            print('No more rows to iterate')
+            break
 
 def action_btn(button_n):
     """clicks on buttons on the bottom of the game
@@ -135,4 +172,5 @@ def mix_all():
     time.sleep(.05)
 
 if __name__ == "__main__":
+    item_itmlst(0,4)
     pass

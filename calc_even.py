@@ -1,7 +1,7 @@
 def calc():
     #emu = input("EMU?\n")
     #emu = int(emu)
-    emu = 470
+    emu = 520
 
     # How many items to calculate
     n = input("Number of items:\n")
