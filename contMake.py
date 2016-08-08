@@ -16,8 +16,8 @@ turn_lock = threading.Lock()
 cx,cy = 0, 0
 # here to type what to make
 instance = raw_input("Make what?:\n")
+mix_iterations = raw_input("How many iterations?\n")
 item_instance = mix_dict(instance)
-mix_iterations = 50
 
 def shoot(x1,y1,x2,y2, *args, **kwargs):
     """Takes screenshot at given coordinates as PIL image format, the converts to cv2 grayscale image format and returns it"""

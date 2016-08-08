@@ -64,7 +64,7 @@ def store_all():
     move(290,65,1)
     time.sleep(.5)
 
-def get_bones(times):
+def get_bones(times=1):
     # withdraws 10 bones
     for i in xrange(times):
         grids.itmlst(330,120,1)

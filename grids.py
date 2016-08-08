@@ -142,11 +142,14 @@ def storage(row,col,repeat):
 def move(x,y):
     """Moves the cursor to x,y and then clicks"""
     #os.system('xdotool mousemove {} {} sleep .1 click --delay 100 --repeat {} 1'.format(x,y, repeat))
-    time.sleep(.03)
+    #time.sleep(.03)
+    wait()
     autopy.mouse.move(x,y)
-    time.sleep(.07)
+    #time.sleep(.07)
+    wait()
     autopy.mouse.click(1)
-    time.sleep(.07)
+    #time.sleep(.07)
+    wait()
 
 def wait(n=.3):
     """Change to a higher number to compensate for lagg"""
@@ -155,9 +158,11 @@ def wait(n=.3):
 def inbank():
     """Deposits held item into bank then right clicks"""
     move(85,95)
-    wait(.2)
+    #wait(.2)
+    wait()
     autopy.mouse.click(3)
-    wait(.2)
+    #wait(.2)
+    wait()
 
 def store_all():
     """Stores all items in inventory"""

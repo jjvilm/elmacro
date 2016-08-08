@@ -6,6 +6,8 @@ import autopy
 import time
 import threading
 from grids import action_btn, move, itmlst
+from withdraw import get_bones
+from InterfaceDetect import find_eat_bones
 
 stop = None
 shoot_lock = threading.Lock()
@@ -72,6 +74,7 @@ def redroses():
 
 def snapdragons():
     try:
+        print('Looking to harvest')
         img = shoot(260,270,550,480,"hsv")
 
         low = np.array([169,213,28])
@@ -80,35 +83,36 @@ def snapdragons():
         # black and white image of roses
         mask = cv2.inRange(img, low, high)
 
-        kernel = np.ones((5,5), np.uint8)
+        kernel = np.ones((1,1), np.uint8)
         closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         #closing_c = closing.copy()
 
-        contours, _ = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        all_xs = []
-        all_ys = []
-
-        cnt = contours[4]
-
-        for con in cnt:
-            for element in con:
-                x1, y1 = element
-                # add img taken coords 
-                x1 += 260
-                y1 += 270
-
-                autopy.mouse.move(x1,y1)
-                time.sleep(2)
-                autopy.mouse.click(1)
-#                all_xs.append(element[0][0])
-#                all_ys.append(element[0][1])
-            break
-        
+        contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         ############## DEBUG
-#
-#        cv2.imshow('closing', closing_c)
-#        cv2.waitKey(0)
-#        cv2.destroyAllWindows()
+        #cv2.imshow('closing', closing)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
+        ############# END DEBUG
+        
+        # Gathers all the biggest areas of the snaps
+        big_areas = {}
+        for con in (contours):
+            if cv2.contourArea(con) > 100:
+                M = cv2.moments(con)
+                big_areas[cv2.contourArea(con)] = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+
+        biggest = max(big_areas.keys())
+
+        # clicks on the biggest area
+        x1, y1 = big_areas[biggest]
+        # add img taken coords 
+        x1 += 260
+        y1 += 270
+
+        autopy.mouse.move(x1,y1)
+        time.sleep(1)
+        autopy.mouse.click(1)
+
         return True
     except:
         return False
@@ -142,28 +146,44 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
     except:
         return cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
 
-def calc_health():
-    with shoot_lock:
-        hsv_img = shoot(308,502,407,503, 'hsv')
-    #hsv_img = shoot(0,0,800,600, 'hsv')
-    low = np.array([0,100,100])
-    high = np.array([10,255,255])
+def calc_health(at_sto = True):
+    global instance, stop
+    while True:
+        if stop == 'y':
+            break
+        with shoot_lock:
+            hsv_img = shoot(308,502,407,503, 'hsv')
+        #hsv_img = shoot(0,0,800,600, 'hsv')
+        low = np.array([0,100,100])
+        high = np.array([10,255,255])
 
-    mask = cv2.inRange(hsv_img, low, high)
+        mask = cv2.inRange(hsv_img, low, high)
 
-    # converts img to an array to measure the empty color space of the bar 
-    mask = np.array(mask)
-    stat_level = 0
-    for color in mask:
-        for element in color:
-            # looks for all the white pixels, if it hits 0 its black so stops there
-            if element == 0:
+        # converts img to an array to measure the empty color space of the bar 
+        mask = np.array(mask)
+        percentage = 0
+        for color in mask:
+            for element in color:
+                # looks for all the white pixels, if it hits 0 its black so stops there
+                if element == 0:
+                    break
+                percentage += 1
+
+        # will check health at storage
+        if at_sto:
+        # casts restoration if helath falls below percentage
+            if percentage < 50:
+                heal()
+                time.sleep(1)
+            else:
                 break
-            stat_level += 1
-
-    # casts restoration if helath falls below 38%
-    if stat_level < 50:
-        heal()
+        # will check health at harvest loc
+        else:
+            if percentage < 25:
+                instance.to_storage()
+                time.sleep(1)
+            else:
+                break
             
 def calc_mp():
     while True:
@@ -182,13 +202,13 @@ def calc_mp():
         #print(contours)
         
         mask = np.array(mask)
-        stat_level = 0
+        percentage = 0
         for color in mask:
             for element in color:
                 if element == 0:
                     break
-                stat_level += 1
-        if stat_level < 70:
+                percentage += 1
+        if percentage < 70:
             autopy.mouse.move(770,70)
             time.sleep(.01)
             autopy.mouse.click(1)
@@ -215,20 +235,17 @@ def calc_food():
         #print(contours)
         
         mask = np.array(mask)
-        stat_level = 0
+        percentage = 0
         for color in mask:
             for element in color:
                 if element == 0:
                     break
-                stat_level += 1
-        if stat_level < 50:
-            autopy.mouse.move(770,137)
-            for _ in range(3):
-                time.sleep(.01)
-                autopy.mouse.click(1)
-            else:
-                autopy.mouse.move(cx,cy)
-        time.sleep(15)
+                percentage += 1
+        # Decide what to do with the amount percentage 
+        if percentage <= 30:
+            get_bones()
+            find_eat_bones()
+        break
 
 def calc_emu():
     global stop, harvest, previous_reading, instance
@@ -248,24 +265,26 @@ def calc_emu():
         #print(contours)
         
         mask = np.array(mask)
-        stat_level = 0
+        percentage = 0
         for color in mask:
             for element in color:
                 # looks to see how filled emu is
                 if element == 255:
-                    stat_level += 1
+                    percentage += 1
                 # stops at where bar is filled
                 else:
-                    # will send a signal to harvest again
-                    if stat_level == previous_reading:
+                    # signals to harvest again
+                    if percentage == previous_reading:
                         print("same as previous reading")
                         harvest = True
-                    print("{} {}".format(previous_reading, stat_level))
-                    previous_reading = stat_level
+                    print("{} {}".format(previous_reading, percentage))
+                    previous_reading = percentage
                     break
-        # goes to storage, and stores, come back to harvest
-        if stat_level >= 99:
-            to_storage()
+        # to storing,check health,check food, back to harvest
+        if percentage >= 99:
+            print("Full, Storing!")
+            instance.to_storage()
+            print("Going back to Harvest")
             instance.go_harvest()
         time.sleep(9)
 
@@ -279,7 +298,7 @@ def get_location():
 
 def heal():
     """Used in calc_health function"""
-    # inventory must be in clear view
+    # withdraws HE & Spirit Restoration
     itmlst(330,196,2)
     time.sleep(.8)
     # eats spirit potion
@@ -287,38 +306,22 @@ def heal():
     # casts restoration
     move(741,80)
     
-def to_storage():
-    # opens map, cliks on storage, closes map
-    action_btn(13)
-    move(226,178)
-    action_btn(13)
-    # waits till getting to storage
-    time.sleep(18)
-    #opens storage
-    action_btn(8)
-    time.sleep(1)
-    #stores materials
-    move(290,68)
-    time.sleep(1)
-    # checks health
-    calc_health()
-    #stores materials
-    move(290,68)
-    time.sleep(1)
-    # closes storage
-    action_btn(8)
-    time.sleep(1)
-
 def harvest_loop(instance):
     """Start at votd storage, with mostly empty inventory"""
     global stop, harvest
     while stop != 'y':
+        # calc_emu sets var harvest to true 
         if harvest:
-            # if red roses are not found
+            # checks HP before harvesting
+            calc_health(at_sto = False)
+            # looks for harvastables in the area, harvests if true
             if not instance.detect():
+                # goes to harvest location if harvest not around
+                print("Harvestable not found, going to it")
                 instance.go_harvest()
             harvest = False
-        time.sleep(3)
+        # set time to higher for mouse to change to harvest icon
+        time.sleep(1)
 
 class Harvest(object):
     def __init__(self, har_loc, sto_loc, harv_func):
@@ -329,12 +332,46 @@ class Harvest(object):
 
     def go_harvest(self):
         x , y = self.har_loc
+        # opens map (button 13)
         action_btn(13)
+        time.sleep(.5)
         # clicks on location to harvest on map
         move(x,y)
+        time.sleep(.5)
+        # closes map
         action_btn(13)
 
+    def to_storage(self):
+        x, y = self.sto_loc
+        # opens map, cliks on storage, closes map
+        action_btn(13)
+        move(x,y)
+        action_btn(13)
+        # waits till getting to storage in VotD
+        time.sleep(18)
+        #opens inventory
+        action_btn(8)
+        time.sleep(1)
+        #stores all materials
+        move(290,68)
+        time.sleep(1)
+        # cliks use button, to be able to drink potion
+        action_btn(4)
+        # checks health
+        calc_health()
+        # Checks food
+        calc_food()
+        #stores materials
+        move(290,68)
+        time.sleep(1)
+        # closes storage
+        action_btn(8)
+        # walk button to harvest 
+        action_btn(1)
+        time.sleep(1)
+
     def detect(self):
+        # Calls the harvastable item's function to find the item
         return self.harv_func()
 
 def start_threads():
@@ -369,8 +406,14 @@ def run():
             pass
         finally:
             stop = 'y'
-
+####### Snaps
 snaps = Harvest((234,308),(227,177),snapdragons)
 instance = snaps
+####### Roses
+#roses = Harvest((270,304),(227,177),redroses)
+#instance = roses
+
 start_threads()
 run()
+#calc_health()
+#snapdragons()
