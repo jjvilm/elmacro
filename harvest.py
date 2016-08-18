@@ -9,7 +9,7 @@ from grids import action_btn, move, itmlst
 from withdraw import get_bones
 from InterfaceDetect import find_eat_bones
 
-stop = None
+stop = False
 shoot_lock = threading.Lock()
 cx,cy = 0, 0
 harvest = False
@@ -148,7 +148,7 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
 
 def calc_health(at_sto = True):
     global instance, stop
-    while stop != 'y':
+    while not stop:
         with shoot_lock:
             hsv_img = shoot(308,502,407,503, 'hsv')
         #hsv_img = shoot(0,0,800,600, 'hsv')
@@ -185,7 +185,7 @@ def calc_health(at_sto = True):
             
 def calc_mp():
     global stop
-    while stop != 'y':
+    while not stop:
         with shoot_lock:
             # grabs blue bar
             hsv_img = shoot(36,504,135,505, 'hsv')
@@ -216,7 +216,7 @@ def calc_mp():
 
 def calc_food():
     global stop
-    while stop != 'y':
+    while not stop:
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(172,503,271,504, 'hsv')
@@ -248,7 +248,7 @@ def calc_food():
 
 def calc_emu():
     global stop, harvest, previous_reading, instance
-    while stop != 'y':
+    while not stop:
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(444,503,543,504, 'hsv')
@@ -286,10 +286,8 @@ def calc_emu():
         time.sleep(9)
 
 def get_location():
-    global cx,cy
-    while True:
-        if stop == 'y':
-            break
+    global cx,cy, stop
+    while not stop:
         cx,cy = autopy.mouse.get_pos()
         time.sleep(1)
 
@@ -306,7 +304,7 @@ def heal():
 def harvest_loop(instance):
     """Start at votd storage, with mostly empty inventory"""
     global stop, harvest
-    while stop != 'y':
+    while not stop:
         # calc_emu sets var harvest to true 
         if harvest:
             # checks HP before harvesting
@@ -381,26 +379,40 @@ def start_threads():
     #food_thread = threading.Thread(target=calc_food)
     #food_thread.start()
 
+    #location_thread = threading.Thread(target=get_location)
+    #location_thread.start()
+
     emu_thread = threading.Thread(target=calc_emu)
     emu_thread.start()
 
     harvest_thread = threading.Thread(target=harvest_loop, args=(instance,))
     harvest_thread.start()
 
-    #location_thread = threading.Thread(target=get_location)
-    #location_thread.start()
+    timer_thread = threading.Thread(target=timer)
+    timer_thread.start()
+
+def timer():
+    # Stops the script after 3 hours
+    global stop
+    counter = 0
+    while counter < 30:
+        # stop kills timer thread
+        if stop:
+            return
+        time.sleep(1)
+        counter += 1
+    stop = True
+    print("*****************\nTime's up! Stopping Now\n*****************")
 
 def run():
     global stop
-    while True:
-        if stop == 'y':
-            break
-        try:
-            stop = raw_input('Press [ENTER] to stop\n')
-        except:
-            pass
-        finally:
-            stop = 'y'
+    # will count for 3 hours, stops program then
+    # less than 3 hours
+    while not stop:
+            raw_input('Press [ENTER] to stop\n')
+            stop = True
+            print("\n*****\nStopped with Enter\n*****")
+
 ####### Snaps
 #snaps = Harvest((234,308),(227,177),snapdragons)
 #instance = snaps
@@ -410,5 +422,3 @@ instance = roses
 
 start_threads()
 run()
-#calc_health()
-#snapdragons()
