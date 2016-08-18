@@ -92,7 +92,7 @@ def snapdragons():
         #cv2.imshow('closing', closing)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
-        ############# END DEBUG
+        ############## END DEBUG
         
         # Gathers all the biggest areas of the snaps
         big_areas = {}
@@ -103,7 +103,7 @@ def snapdragons():
 
         biggest = max(big_areas.keys())
 
-        # clicks on the biggest area
+        # clicks on the center of biggest area
         x1, y1 = big_areas[biggest]
         # add img taken coords 
         x1 += 260
@@ -220,9 +220,7 @@ def calc_mp():
 
 def calc_food():
     global stop
-    while True:
-        if stop == 'y':
-            return
+    while stop != 'y':
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(172,503,271,504, 'hsv')
@@ -248,7 +246,7 @@ def calc_food():
             time.sleep(1)
             # cliks use button
             action_btn(4)
-            # eats 
+            # eats food
             move(770,75)
         break
 
@@ -318,7 +316,7 @@ def harvest_loop(instance):
         # calc_emu sets var harvest to true 
         if harvest:
             # checks HP before harvesting
-            calc_health(at_sto = False)
+            #calc_health(at_sto = False)
             # looks for harvastables in the area, harvests if true
             if not instance.detect():
                 # goes to harvest location if harvest not around
@@ -361,7 +359,7 @@ class Harvest(object):
         move(290,68)
         time.sleep(1)
         # checks health
-       ## calc_health()
+        ##calc_health()
         # Checks food
         calc_food()
         #stores materials
