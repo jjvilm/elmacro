@@ -242,9 +242,14 @@ def calc_food():
                     break
                 percentage += 1
         # Decide what to do with the amount percentage 
-        if percentage <= 30:
-            get_bones()
-            find_eat_bones()
+        if percentage <= 20:
+            # withdraws food
+            itmlst(330,125,1)
+            time.sleep(1)
+            # cliks use button
+            action_btn(4)
+            # eats 
+            move(770,75)
         break
 
 def calc_emu():
@@ -355,20 +360,18 @@ class Harvest(object):
         #stores all materials
         move(290,68)
         time.sleep(1)
-        # cliks use button, to be able to drink potion
-        action_btn(4)
         # checks health
-        calc_health()
+       ## calc_health()
         # Checks food
         calc_food()
         #stores materials
-        move(290,68)
-        time.sleep(1)
+        ##move(290,68)
+        ##time.sleep(1)
         # closes storage
         action_btn(8)
-        # walk button to harvest 
+        # walk button to be able to harvest 
         action_btn(1)
-        time.sleep(1)
+        ##time.sleep(1)
 
     def detect(self):
         # Calls the harvastable item's function to find the item
@@ -407,11 +410,11 @@ def run():
         finally:
             stop = 'y'
 ####### Snaps
-snaps = Harvest((234,308),(227,177),snapdragons)
-instance = snaps
+#snaps = Harvest((234,308),(227,177),snapdragons)
+#instance = snaps
 ####### Roses
-#roses = Harvest((270,304),(227,177),redroses)
-#instance = roses
+roses = Harvest((270,304),(227,177),redroses)
+instance = roses
 
 start_threads()
 run()
