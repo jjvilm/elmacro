@@ -92,7 +92,7 @@ def snapdragons():
         #cv2.imshow('closing', closing)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
-        ############# END DEBUG
+        ############## END DEBUG
         
         # Gathers all the biggest areas of the snaps
         big_areas = {}
@@ -103,7 +103,7 @@ def snapdragons():
 
         biggest = max(big_areas.keys())
 
-        # clicks on the biggest area
+        # clicks on the center of biggest area
         x1, y1 = big_areas[biggest]
         # add img taken coords 
         x1 += 260
@@ -193,9 +193,7 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
 
 def calc_health(at_sto = True):
     global instance, stop
-    while True:
-        if stop == 'y':
-            break
+    while stop != 'y':
         with shoot_lock:
             hsv_img = shoot(308,502,407,503, 'hsv')
         #hsv_img = shoot(0,0,800,600, 'hsv')
@@ -231,10 +229,8 @@ def calc_health(at_sto = True):
                 break
             
 def calc_mp():
-    while True:
-        global stop
-        if stop == 'y':
-            return
+    global stop
+    while stop != 'y':
         with shoot_lock:
             # grabs blue bar
             hsv_img = shoot(36,504,135,505, 'hsv')
@@ -265,9 +261,7 @@ def calc_mp():
 
 def calc_food():
     global stop
-    while True:
-        if stop == 'y':
-            return
+    while stop != 'y':
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(172,503,271,504, 'hsv')
@@ -287,16 +281,19 @@ def calc_food():
                     break
                 percentage += 1
         # Decide what to do with the amount percentage 
-        if percentage <= 30:
-            get_bones()
-            find_eat_bones()
+        if percentage <= 20:
+            # withdraws food from very top of list
+            itmlst(330,125,1)
+            time.sleep(1)
+            # cliks use button
+            action_btn(4)
+            # clicks the food slot
+            move(770,75)
         break
 
 def calc_emu():
     global stop, harvest, previous_reading, instance
-    while True:
-        if stop == 'y':
-            return
+    while stop != 'y':
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(444,503,543,504, 'hsv')
@@ -358,7 +355,7 @@ def harvest_loop(instance):
         # calc_emu sets var harvest to true 
         if harvest:
             # checks HP before harvesting
-            calc_health(at_sto = False)
+            #calc_health(at_sto = False)
             # looks for harvastables in the area, harvests if true
             if not instance.detect():
                 # goes to harvest location if harvest not around
@@ -399,21 +396,16 @@ class Harvest(object):
         sleep(1)
         #stores all materials
         move(290,68)
-        sleep(1)
-        # cliks use button, to be able to drink potion
-        action_btn(4)
+        time.sleep(1)
         # checks health
-        calc_health()
+        #calc_health()
         # Checks food
         calc_food()
-        #stores materials
-        move(290,68)
-        sleep(1)
         # closes storage
         action_btn(8)
-        # walk button to harvest 
+        # walk button to be able to harvest 
         action_btn(1)
-        sleep(1)
+        ##time.sleep(1)
 
     def detect(self):
         # Calls the harvastable item's function to find the item
@@ -455,11 +447,11 @@ def run():
 #snaps = Harvest((234,308),(227,177),snapdragons)
 #instance = snaps
 ####### Roses
-#roses = Harvest((270,304),(227,177),redroses)
-#instance = roses
+roses = Harvest((270,304),(227,177),redroses)
+instance = roses
 ####### lilacs
-lilac = Harvest((242,47),(227,177),lilacs)
-instance = lilac
+#lilac = Harvest((242,47),(227,177),lilacs)
+#instance = lilac
 
 start_threads()
 run()
