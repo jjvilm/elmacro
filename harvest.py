@@ -148,9 +148,7 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
 
 def calc_health(at_sto = True):
     global instance, stop
-    while True:
-        if stop == 'y':
-            break
+    while stop != 'y':
         with shoot_lock:
             hsv_img = shoot(308,502,407,503, 'hsv')
         #hsv_img = shoot(0,0,800,600, 'hsv')
@@ -186,10 +184,8 @@ def calc_health(at_sto = True):
                 break
             
 def calc_mp():
-    while True:
-        global stop
-        if stop == 'y':
-            return
+    global stop
+    while stop != 'y':
         with shoot_lock:
             # grabs blue bar
             hsv_img = shoot(36,504,135,505, 'hsv')
@@ -241,20 +237,18 @@ def calc_food():
                 percentage += 1
         # Decide what to do with the amount percentage 
         if percentage <= 20:
-            # withdraws food
+            # withdraws food from very top of list
             itmlst(330,125,1)
             time.sleep(1)
             # cliks use button
             action_btn(4)
-            # eats food
+            # clicks the food slot
             move(770,75)
         break
 
 def calc_emu():
     global stop, harvest, previous_reading, instance
-    while True:
-        if stop == 'y':
-            return
+    while stop != 'y':
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(444,503,543,504, 'hsv')
@@ -359,12 +353,12 @@ class Harvest(object):
         move(290,68)
         time.sleep(1)
         # checks health
-        ##calc_health()
+        #calc_health()
         # Checks food
         calc_food()
-        #stores materials
-        ##move(290,68)
-        ##time.sleep(1)
+        # stores materials
+        #move(290,68)
+        #time.sleep(1)
         # closes storage
         action_btn(8)
         # walk button to be able to harvest 
