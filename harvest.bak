@@ -1,10 +1,11 @@
 #!/usr/bin/python2
 import cv2
 import numpy as np
-from pyscreenshot import grab
-from autopy import mouse
-from time import sleep
+import pyscreenshot
+import autopy
+import time
 import threading
+from os import popen
 from grids import action_btn, move, itmlst
 from withdraw import get_bones
 from InterfaceDetect import find_eat_bones
@@ -13,7 +14,7 @@ stop = None
 shoot_lock = threading.Lock()
 cx,cy = 0, 0
 harvest = False
-previous_reading = 0
+stop_harvest = False
 
 def redroses():
     try:
@@ -59,9 +60,9 @@ def redroses():
         y1 = y1 +((y2-y1)/2)
         
         
-        mouse.move(x1,y1)
-        sleep(2)
-        mouse.click(1)
+        autopy.mouse.move(x1,y1)
+        time.sleep(2)
+        autopy.mouse.click(1)
         
         ############## DEBUG
 #
@@ -74,7 +75,7 @@ def redroses():
 
 def snapdragons():
     try:
-        print('Looking to harvest')
+        print('Looking to harvest\n')
         img = shoot(260,270,550,480,"hsv")
 
         low = np.array([169,213,28])
@@ -109,54 +110,9 @@ def snapdragons():
         x1 += 260
         y1 += 270
 
-        mouse.move(x1,y1)
-        sleep(1)
-        mouse.click(1)
-
-        return True
-    except:
-        return False
-
-def lilacs():
-    try:
-        print('Looking to harvest')
-        img = shoot(260,270,550,480,"hsv")
-
-        low = np.array([131,106,48])
-        high= np.array([146,255,255])
-
-        # black and white image of roses
-        mask = cv2.inRange(img, low, high)
-
-        kernel = np.ones((1,1), np.uint8)
-        closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        #closing_c = closing.copy()
-
-        contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        ############## DEBUG
-        #cv2.imshow('closing', closing)
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
-        ############# END DEBUG
-        
-        # Gathers all the biggest areas of the snaps
-        big_areas = {}
-        for con in (contours):
-            if cv2.contourArea(con) > 100:
-                M = cv2.moments(con)
-                big_areas[cv2.contourArea(con)] = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-
-        biggest = max(big_areas.keys())
-
-        # clicks on the biggest area
-        x1, y1 = big_areas[biggest]
-        # add img taken coords 
-        x1 += 260
-        y1 += 270
-
-        mouse.move(x1,y1)
-        sleep(1)
-        mouse.click(1)
+        autopy.mouse.move(x1,y1)
+        time.sleep(1)
+        autopy.mouse.click(1)
 
         return True
     except:
@@ -165,7 +121,7 @@ def lilacs():
 def shoot(x1,y1,x2,y2, *args, **kwargs):
     """Takes screenshot at given coordinates as PIL image format, the converts to cv2 grayscale image format and returns it"""
     # PIL format as RGB
-    im = grab(bbox=(x1,y1,x2,y2)) #X1,Y1,X2,Y2
+    im = pyscreenshot.grab(bbox=(x1,y1,x2,y2)) #X1,Y1,X2,Y2
     #im.save('screenshot.png')
 
     # Converts to an array used for OpenCV
@@ -192,10 +148,11 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
         return cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
 
 def calc_health(at_sto = True):
-    global instance, stop
-    while True:
-        if stop == 'y':
-            break
+    global instance, stop 
+    # use to withdraw spirit potion and health essence once
+    check_once = True
+
+    while stop != 'y':
         with shoot_lock:
             hsv_img = shoot(308,502,407,503, 'hsv')
         #hsv_img = shoot(0,0,800,600, 'hsv')
@@ -218,50 +175,54 @@ def calc_health(at_sto = True):
         if at_sto:
         # casts restoration if helath falls below percentage
             if percentage < 50:
-                heal()
-                sleep(1)
+                if check_once:
+                    # withdraws HE & Spirit Restoration
+                    itmlst(330,196,2)
+                    # Checks if need to drink potion
+                    calc_mp()
+                    check_once = False
+                # casts restoration
+                move(741,80)
+
+                #heal()
+                #time.sleep(1)
             else:
                 break
         # will check health at harvest loc
         else:
             if percentage < 25:
                 instance.to_storage()
-                sleep(1)
+                # breaks recurssion, 
+                break
             else:
                 break
+        # gives time for restoration cooldown
+        time.sleep(2)
             
 def calc_mp():
-    while True:
-        global stop
-        if stop == 'y':
-            return
-        with shoot_lock:
-            # grabs blue bar
-            hsv_img = shoot(36,504,135,505, 'hsv')
-        low = np.array([110,100,100])
-        high = np.array([130,255,255])
+    with shoot_lock:
+        # grabs blue bar
+        hsv_img = shoot(36,504,135,505, 'hsv')
+    low = np.array([110,100,100])
+    high = np.array([130,255,255])
 
-        mask = cv2.inRange(hsv_img, low, high)
+    mask = cv2.inRange(hsv_img, low, high)
 
-        #(conts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        #print(contours)
-        
-        mask = np.array(mask)
-        percentage = 0
-        for color in mask:
-            for element in color:
-                if element == 0:
-                    break
-                percentage += 1
-        if percentage < 70:
-            mouse.move(770,70)
-            sleep(.01)
-            mouse.click(1)
-            # moves back to original location
-            mouse.move(cx,cy)
-            sleep(17)
-        else:
-            sleep(2)
+    #(conts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #print(contours)
+    
+    mask = np.array(mask)
+    percentage = 0
+    for color in mask:
+        for element in color:
+            if element == 0:
+                break
+            percentage += 1
+    if percentage < 40:
+        # cliks use button, to be able to drink potion
+        action_btn(4)
+        # eats spirit potion
+        move(771,76)
 
 def calc_food():
     global stop
@@ -293,7 +254,7 @@ def calc_food():
         break
 
 def calc_emu():
-    global stop, harvest, previous_reading, instance
+    global stop, harvest, instance, stop_harvest
     while True:
         if stop == 'y':
             return
@@ -318,38 +279,44 @@ def calc_emu():
                     percentage += 1
                 # stops at where bar is filled
                 else:
-                    # signals to harvest again
-                    if percentage == previous_reading:
-                        print("same as previous reading")
-                        harvest = True
-                    print("{} {}".format(previous_reading, percentage))
-                    previous_reading = percentage
                     break
+        # Starts harvsting process when inventory empty
+        if percentage <= 1:
+            harvest = True
+            time.sleep(30)
         # to storing,check health,check food, back to harvest
         if percentage >= 99:
-            print("Full, Storing!")
+            print("Full, Storing!\n")
+            stop_harvest = True
             instance.to_storage()
-            print("Going back to Harvest")
-            instance.go_harvest()
-        sleep(9)
+            stop_harvest = False
+        time.sleep(2)
+
+def stopped_harvest_line():
+    global harvest, stop, stop_harvest
+    previous_time = ""
+    while stop != 'y':
+        # reads srv_log.txt to get "you stopped harvesting" line
+        last_line = popen('tail -n1 /home/jj/.elc/main/srv_log.txt').read()
+        # checks if time is not the same as last time it stopped harvesting
+        if "You stopped harvesting" in last_line[11:-2] and stop_harvest == False:
+            # checks times differ 
+            if previous_time != last_line[1:9]:
+                harvest = True
+                # sets previous time equal to the last time harvesting stopped
+                previous_time = last_line[1:9]
+        time.sleep(2)
 
 def get_location():
     global cx,cy
     while True:
         if stop == 'y':
             break
-        cx,cy = mouse.get_pos()
-        sleep(1)
+        cx,cy = autopy.mouse.get_pos()
+        time.sleep(1)
 
 def heal():
     """Used in calc_health function"""
-    # withdraws HE & Spirit Restoration
-    itmlst(330,196,2)
-    sleep(.8)
-    # eats spirit potion
-    move(771,76)
-    # casts restoration
-    move(741,80)
     
 def harvest_loop(instance):
     """Start at votd storage, with mostly empty inventory"""
@@ -362,13 +329,16 @@ def harvest_loop(instance):
             # looks for harvastables in the area, harvests if true
             if not instance.detect():
                 # goes to harvest location if harvest not around
-                print("Harvestable not found, going to it")
+                print("Harvestable not found, going to it\n")
                 instance.go_harvest()
-            harvest = False
+                time.sleep(5)
+            else:
+                harvest = False
         # set time to higher for mouse to change to harvest icon
-        sleep(1)
+        time.sleep(1)
 
 class Harvest(object):
+    global stop_harvest
     def __init__(self, har_loc, sto_loc, harv_func):
         """pass har_loc and sto_loc as a tuple, and harv func is the function to detect the harvestable"""
         self.har_loc = har_loc
@@ -377,43 +347,44 @@ class Harvest(object):
 
     def go_harvest(self):
         x , y = self.har_loc
+        stop_harvest = True
         # opens map (button 13)
         action_btn(13)
-        sleep(.5)
+        time.sleep(.5)
         # clicks on location to harvest on map
         move(x,y)
-        sleep(.5)
+        time.sleep(.5)
         # closes map
         action_btn(13)
+        stop_harvest = False
 
     def to_storage(self):
+        stop_harvest = True
         x, y = self.sto_loc
         # opens map, cliks on storage, closes map
         action_btn(13)
         move(x,y)
         action_btn(13)
         # waits till getting to storage in VotD
-        sleep(18)
+        time.sleep(18)
         #opens inventory
         action_btn(8)
-        sleep(1)
+        time.sleep(1)
         #stores all materials
         move(290,68)
-        sleep(1)
-        # cliks use button, to be able to drink potion
-        action_btn(4)
+        time.sleep(1)
         # checks health
         calc_health()
         # Checks food
         calc_food()
         #stores materials
         move(290,68)
-        sleep(1)
+        time.sleep(1)
         # closes storage
         action_btn(8)
         # walk button to harvest 
         action_btn(1)
-        sleep(1)
+        stop_harvest = False
 
     def detect(self):
         # Calls the harvastable item's function to find the item
@@ -437,6 +408,10 @@ def start_threads():
     harvest_thread = threading.Thread(target=harvest_loop, args=(instance,))
     harvest_thread.start()
 
+    # reads file to check if stopped harvesting, if true sets harvest var to True
+    read_stopped_harvest_thread = threading.Thread(target=stopped_harvest_line)
+    read_stopped_harvest_thread.start()
+
     #location_thread = threading.Thread(target=get_location)
     #location_thread.start()
 
@@ -452,17 +427,14 @@ def run():
         finally:
             stop = 'y'
 ####### Snaps
-#snaps = Harvest((234,308),(227,177),snapdragons)
-#instance = snaps
+snaps = Harvest((234,308),(227,177),snapdragons)
+instance = snaps
 ####### Roses
 #roses = Harvest((270,304),(227,177),redroses)
 #instance = roses
-####### lilacs
-lilac = Harvest((242,47),(227,177),lilacs)
-instance = lilac
 
 start_threads()
 run()
 #calc_health()
 #snapdragons()
-#lilacs()
+#stopped_harvest_line()

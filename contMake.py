@@ -16,7 +16,7 @@ turn_lock = threading.Lock()
 cx,cy = 0, 0
 # here to type what to make
 instance = raw_input("Make what?:\n")
-mix_iterations = raw_input("How many iterations?\n")
+mix_iterations = int(raw_input("How many iterations?\n"))
 item_instance = mix_dict(instance)
 
 def shoot(x1,y1,x2,y2, *args, **kwargs):
@@ -51,9 +51,7 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
 def calc_food():
     global stop, item_instance
     iterations = 0
-    while True:
-        if stop == 'y':
-            return
+    while stop != 'y':
         with shoot_lock:
             # grabs food bar
             hsv_img = shoot(172,503,271,504, 'hsv')
@@ -67,14 +65,14 @@ def calc_food():
         
         # turns the food bar into a 1 pixle wide binary image
         mask = np.array(mask)
-        stat_level = 0
+        percentage = 0
         for color in mask:
             for element in color:
                 if element == 0:
                     break
-                stat_level += 1
+                percentage += 1
         # if the food bar is less than 1%
-        if stat_level < 1:
+        if percentage < 1:
             with turn_lock:
                 iterations += 1
                 # on 4th iteration it withdraws more bones
@@ -104,10 +102,7 @@ def stopped_working():
                               [  0, 255, 255, 255, 255,   0,   0,   0],
                               [255, 255, 255, 255, 255,   0,   0,   0]], dtype="uint8")
 
-    while True:
-        if stop == 'y':
-            return
-
+    while stop != 'y':
         with shoot_lock:
             # screenshots letter "N" as gray object, of the word "Nothing"
             # when "Nothing to mix..." comes up.
@@ -140,10 +135,8 @@ def nothing_to_mix():
 
     iterations = 0
 
-    while True:
-        if stop == 'y':
-            return
-        elif mix_iterations == iterations:
+    while stop != 'y':
+        if mix_iterations == iterations:
             stop = 'y'
 
         with shoot_lock:
@@ -274,8 +267,6 @@ if __name__ == "__main__":
 
     #while True:
     for _ in range(1):
-        if stop == 'y':
-            break
         try:
             stop = raw_input('Press [ENTER] to stop\n')
         except:
