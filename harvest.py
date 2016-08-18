@@ -284,7 +284,7 @@ def calc_food():
         if percentage <= 20:
             # withdraws food from very top of list
             itmlst(330,125,1)
-            time.sleep(1)
+            sleep(1)
             # cliks use button
             action_btn(4)
             # clicks the food slot
@@ -396,7 +396,7 @@ class Harvest(object):
         sleep(1)
         #stores all materials
         move(290,68)
-        time.sleep(1)
+        sleep(1)
         # checks health
         #calc_health()
         # Checks food
@@ -405,7 +405,7 @@ class Harvest(object):
         action_btn(8)
         # walk button to be able to harvest 
         action_btn(1)
-        ##time.sleep(1)
+        ##sleep(1)
 
     def detect(self):
         # Calls the harvastable item's function to find the item
