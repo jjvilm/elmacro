@@ -3,10 +3,13 @@ import autopy
 import time
 import InterfaceDetect
 
-def inventory(row,col,clicks):
+def inventory(row,col,clicks, use=False):
     """pass row and colum of item to click by n clicks in inventory
     Rows and Colums start at 0
     """
+    # if True will click use button first, before clicking item in inv
+    if use:
+        action_btn(4)
     # ROWS AND COLS START AT 0
     x,y = 18,33
     w = 34
@@ -151,7 +154,7 @@ def move(x,y):
     #time.sleep(.07)
     wait()
 
-def wait(n=.3):
+def wait(n=.4):
     """Change to a higher number to compensate for lagg"""
     time.sleep(n)
 
@@ -178,4 +181,3 @@ def mix_all():
 
 if __name__ == "__main__":
     item_itmlst(0,4)
-    pass

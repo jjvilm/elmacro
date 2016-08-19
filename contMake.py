@@ -6,9 +6,9 @@ import autopy
 import time
 import threading
 from contWithdraw import  mix_dict 
-from grids import mix_all
+from grids import mix_all, item_itmlst, inventory
 
-stop = None
+stop = False
 # used to avoid taking screenshots at the same time with 2 different threads
 shoot_lock = threading.Lock()
 # used to avoid colliding with other mouse move actions
@@ -48,44 +48,44 @@ def shoot(x1,y1,x2,y2, *args, **kwargs):
     except:
         return cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
     
-def calc_food():
-    global stop, item_instance
-    iterations = 0
-    while stop != 'y':
-        with shoot_lock:
-            # grabs food bar
-            hsv_img = shoot(172,503,271,504, 'hsv')
-        low = np.array([0,100,100])
-        high = np.array([179,255,255])
-
-        mask = cv2.inRange(hsv_img, low, high)
-
-        #(conts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        #print(contours)
-        
-        # turns the food bar into a 1 pixle wide binary image
-        mask = np.array(mask)
-        percentage = 0
-        for color in mask:
-            for element in color:
-                if element == 0:
-                    break
-                percentage += 1
-        # if the food bar is less than 1%
-        if percentage < 1:
-            with turn_lock:
-                iterations += 1
-                # on 4th iteration it withdraws more bones
-                if iterations == 4:
-                    # closes itmlist windows if open
-                    itmlst_window()
-                    time.sleep(.1)
-                    item_instance.get_bones() 
-                    iterations = 0
-                item_instance.eat()
-                mix_all()
-
-        time.sleep(1)
+#def calc_food():
+#    global stop, item_instance
+#    iterations = 0
+#    while not stop:
+#        with shoot_lock:
+#            # grabs food bar
+#            hsv_img = shoot(172,503,271,504, 'hsv')
+#        low = np.array([0,100,100])
+#        high = np.array([179,255,255])
+#
+#        mask = cv2.inRange(hsv_img, low, high)
+#
+#        #(conts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+#        #print(contours)
+#        
+#        # turns the food bar into a 1 pixle wide binary image
+#        mask = np.array(mask)
+#        percentage = 0
+#        for color in mask:
+#            for element in color:
+#                if element == 0:
+#                    break
+#                percentage += 1
+#        # if the food bar is less than 1%
+#        if percentage < 1:
+#            with turn_lock:
+#                iterations += 1
+#                # on 4th iteration it withdraws more bones
+#                if iterations == 4:
+#                    # closes itmlist windows if open
+#                    itmlst_window()
+#                    time.sleep(.1)
+#                    item_instance.get_bones() 
+#                    iterations = 0
+#                item_instance.eat()
+#                mix_all()
+#
+#        time.sleep(1)
 
 def stopped_working():
     global stop
@@ -102,7 +102,7 @@ def stopped_working():
                               [  0, 255, 255, 255, 255,   0,   0,   0],
                               [255, 255, 255, 255, 255,   0,   0,   0]], dtype="uint8")
 
-    while stop != 'y':
+    while not stop:
         with shoot_lock:
             # screenshots letter "N" as gray object, of the word "Nothing"
             # when "Nothing to mix..." comes up.
@@ -135,9 +135,10 @@ def nothing_to_mix():
 
     iterations = 0
 
-    while stop != 'y':
+    while not stop:
         if mix_iterations == iterations:
-            stop = 'y'
+            stop = True
+            print("***********\nAll iterations done, terminating!\n************")
 
         with shoot_lock:
             # screenshots letter "N" as gray object, of the word "Nothing"
@@ -171,9 +172,7 @@ def you_failed():
                          [255, 255, 255, 255, 255, 255,   0],
                          [  0,   0,   0,   0,   0,   0,   0]], dtype="uint8")
     
-    while True:
-        if stop == 'y':
-            return
+    while not stop:
         with shoot_lock:
             # screenshots letter "F" as gray object, of the word "Nothing"
             # when "Nothing to mix..." comes up.
@@ -221,28 +220,28 @@ def itmlst_window():
         itmlst_toggle()
 
 def safefail_mix():
-    """Clicks on mix all in case a rare item is made, or something else not detected"""
+    """Eats fruit every 60 secs, then mix all"""
     global stop
 
     counter = 0
-    while True:
-        if stop == 'y':
-            return
-        
+    while not stop:
         # clicks mix all every 2 mins
         # in case a rare item is created or some other reason
         # to kickstart the other detector threads
-        if counter == 120:
+        if counter == 60:
             with turn_lock:
-                counter = 0
+                # eats fruit on slot 0x3
+                inventory(0,3, 1, use=True)
                 mix_all()
+                counter = 0
+
         counter += 1
         time.sleep(1)
 
 def start_threads():
     # checks health every 3 secsonds
-    food_thread = threading.Thread(target=calc_food)
-    food_thread.start()
+    #food_thread = threading.Thread(target=calc_food)
+    #food_thread.start()
     # checks for letter N in Nothing
     nothing_to_mix_thread = threading.Thread(target=nothing_to_mix)
     nothing_to_mix_thread.start()
@@ -266,10 +265,5 @@ if __name__ == "__main__":
     #calc_food()
 
     #while True:
-    for _ in range(1):
-        try:
-            stop = raw_input('Press [ENTER] to stop\n')
-        except:
-            pass
-        finally: 
-            stop = 'y'
+    raw_input('Press [ENTER] to stop\n')
+    stop = True
