@@ -395,7 +395,7 @@ def timer():
     # Stops the script after 3 hours
     global stop
     counter = 0
-    while counter < 30:
+    while counter < 10800:
         # stop kills timer thread
         if stop:
             return
