@@ -68,9 +68,11 @@ def open_itmlst_window():
         itmlst_toggle()
 
 def find_eat_bones():
-    import autopy
-    import time
+    from autopy import mouse
+    from time import sleep
+    from random import random
     ox, oy = 2,17
+    # takes screenshot of inventory
     im = shoot(ox,oy,197,197)
 
     # bone image as a list :D
@@ -94,7 +96,7 @@ def find_eat_bones():
     [8, 107, 168, 240, 99, 3, 0],
     [23, 116, 185, 231, 39, 2, 0],
     [64, 115, 235, 229, 37, 0, 0]], dtype=np.uint8)
-
+    # finds image
     def match_(template):
         res = cv2.matchTemplate(im, template, cv2.TM_CCOEFF_NORMED)
         threshold = .8
@@ -105,14 +107,14 @@ def find_eat_bones():
             x += ox
             y += oy
             # clicks on use button
-            autopy.mouse.move(109,526)
-            time.sleep(.07)
-            autopy.mouse.click(1)
+            mouse.move(109,526)
+            sleep(.07)
+            mouse.click(1)
 
-            autopy.mouse.move(x,y)
+            mouse.move(x,y)
             for _ in xrange(5):
-                time.sleep(.01)
-                autopy.mouse.click(1)
+                sleep(random())
+                mouse.click(1)
             return True
         return False
 

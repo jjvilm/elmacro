@@ -2,6 +2,7 @@
 import autopy
 import time
 import InterfaceDetect
+from random import choice as random_choice
 
 def inventory(row,col,clicks):
     """pass row and colum of item to click by n clicks in inventory
@@ -143,8 +144,13 @@ def move(x,y):
     """Moves the cursor to x,y and then clicks"""
     #os.system('xdotool mousemove {} {} sleep .1 click --delay 100 --repeat {} 1'.format(x,y, repeat))
     #time.sleep(.03)
+    # randomizes each coordinate by a range of -5 to 5
+    print("{} {}".format(x,y))
+    x = random_coords(x)
+    y = random_coords(y)
+    print("{} {}\n".format(x,y))
     wait()
-    autopy.mouse.move(x,y)
+    autopy.mouse.smooth_move(x,y)
     #time.sleep(.07)
     wait()
     autopy.mouse.click(1)
@@ -175,6 +181,14 @@ def mix_all():
     """Clicks on mix all button in inventory"""
     inventory(4,8,1)
     time.sleep(.05)
+
+def random_coords(coordinate):
+    # randomly selects n from a list -5 through 5
+    choice_range = [x for x in range(-5,6)]
+    # adds random number to x & y
+    coordinate += random_choice(choice_range)
+    
+    return coordinate
 
 if __name__ == "__main__":
     item_itmlst(0,4)
