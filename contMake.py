@@ -3,7 +3,6 @@ from cv2 import cvtColor, COLOR_RGB2BGR,COLOR_BGR2GRAY, COLOR_BGR2HSV,inRange,th
 from numpy import array
 from pyscreenshot import grab
 import autopy 
-from time import sleep
 from threading import Lock, Thread
 from contWithdraw import  mix_dict 
 from grids import mix_all, wait
@@ -79,13 +78,13 @@ def calc_food():
                 # on 4th iteration it withdraws more bones
                 if iterations == 4:
                     open_itmlst_window()
-                    sleep(.1)
+                    wait(.1)
                     item_instance.get_bones() 
                     iterations = 0
                 item_instance.eat()
                 mix_all()
 
-        sleep(1)
+        wait(1)
 
 def stopped_working():
     global stop
@@ -113,9 +112,9 @@ def stopped_working():
         if (letter == thresh).all():
             with turn_lock:
                 mix_all()
-                sleep(1)
+                wait(1)
         else:
-            sleep(1)
+            wait(1)
 
 def nothing_to_mix():
     """needs fixing to a binary threshold"""
@@ -149,13 +148,13 @@ def nothing_to_mix():
             with turn_lock:
                 # opens item list window
                 open_itmlst_window()
-                sleep(.1)
+                wait(.1)
                 # withdraw more items 
                 item_instance.run()
                 iterations += 1
                 print("Iterations: {}".format(iterations))
-                sleep(1)
-        sleep(3)
+                wait(1)
+        wait(3)
 
 def you_failed():
     global stop
@@ -184,8 +183,8 @@ def you_failed():
         if (letter_f == thresh).all():
             with turn_lock:
                 mix_all()
-                sleep(1)
-        sleep(2)
+                wait(1)
+        wait(2)
 
 def safefail_mix():
     """Clicks on mix all in case a rare item is made, or something else not detected"""
@@ -201,7 +200,7 @@ def safefail_mix():
                 counter = 0
                 mix_all()
         counter += 1
-        sleep(1)
+        wait(1)
 
 def start_threads():
     # checks health every 3 secsonds

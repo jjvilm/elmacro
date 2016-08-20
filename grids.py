@@ -2,7 +2,7 @@
 import autopy
 import time
 import InterfaceDetect
-from random import choice as random_choice
+from random import choice as random_choice, random
 
 def inventory(row,col,clicks):
     """pass row and colum of item to click by n clicks in inventory
@@ -41,10 +41,10 @@ def itmlst(loc_x, loc_y,n_items):
     last one being bones"""
     # opens itm list if not already open
     InterfaceDetect.open_itmlst_window()
-    time.sleep(0.1)
+    wait(0.1)
     # moves to ingredients in itmlst location
     move(loc_x, loc_y)
-    time.sleep(0.1)
+    wait(0.1)
 
     x,y = 330,30
     w = 34
@@ -64,8 +64,6 @@ def itmlst(loc_x, loc_y,n_items):
             # moves curosor to next row
             y += l
             x = 330
-    # closes item lst window
-    inventory(5,8,1)
 
 def item_itmlst(row, col):
     """Takes out a single item at a time.  pass row and colum of item to click by n clicks in itmlst
@@ -73,7 +71,7 @@ def item_itmlst(row, col):
     """
     # opens itm list if not already open
     InterfaceDetect.open_itmlst_window()
-    time.sleep(0.1)
+    wait(0.1)
 
     # ROWS AND COLS START AT 0
     x,y = 330,30
@@ -87,7 +85,7 @@ def item_itmlst(row, col):
         if rite == row and cite == col:
             # right clicks item before taking out. solve bug
             autopy.mouse.click(3)
-            time.sleep(.1)
+            wait(.1)
             move(x,y)
             inbank()
             break
@@ -142,23 +140,32 @@ def storage(row,col,repeat):
 
 def move(x,y):
     """Moves the cursor to x,y and then clicks"""
-    #os.system('xdotool mousemove {} {} sleep .1 click --delay 100 --repeat {} 1'.format(x,y, repeat))
-    #time.sleep(.03)
     # randomizes each coordinate by a range of -5 to 5
-    print("{} {}".format(x,y))
     x = random_coords(x)
     y = random_coords(y)
-    print("{} {}\n".format(x,y))
+
     wait()
     autopy.mouse.smooth_move(x,y)
-    #time.sleep(.07)
     wait()
     autopy.mouse.click(1)
-    #time.sleep(.07)
     wait()
 
-def wait(n=.3):
+def wait(n=.1):
     """Change to a higher number to compensate for lagg"""
+    # gett random number, and make it str to slice it
+    rn = random()
+    rn = str(rn)
+    rn = rn[:1]+rn[2:6]
+    # concantenate sliced random number to n
+    if n >= 1:
+        n = str(n)
+        n = n+"."+rn
+    else:
+        n = str(n)
+        n = n+rn
+    # back to float to used by sleep func
+    n = float(n)
+
     time.sleep(n)
 
 def inbank():
@@ -173,14 +180,12 @@ def inbank():
 def store_all():
     """Stores all items in inventory"""
     # store all
-    #move(290,65)
-    #time.sleep(.2)
     inventory(1,8,1)
 
 def mix_all():
     """Clicks on mix all button in inventory"""
     inventory(4,8,1)
-    time.sleep(.05)
+    wait(.05)
 
 def random_coords(coordinate):
     # randomly selects n from a list -5 through 5
