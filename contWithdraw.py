@@ -22,7 +22,6 @@ class mix_Items(object):
         grids.store_all()
         # withdraws items 
         grids.itmlst(self.x,self.y,self.n)
-        self.eat()
         # clics mix all button in inventory 
         grids.mix_all()
 
