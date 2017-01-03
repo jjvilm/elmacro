@@ -99,7 +99,7 @@ def snapdragons():
         for con in (contours):
             if cv2.contourArea(con) > 100:
                 M = cv2.moments(con)
-                big_areas[cv2.contourArea(con)] = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+                big_areas[cv2.contourArea(con)] = (int(M["m10"] / M["m10"]), int(M["m01"] / M["m00"]))
 
         biggest = max(big_areas.keys())
 
